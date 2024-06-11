@@ -1,4 +1,26 @@
+import java.util.Scanner;
+
 public class DuasThreads extends Thread {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Digite o valor inicial do intervalo:");
+        int inicio = scanner.nextInt();
+
+        System.out.println("Digite o valor final do intervalo:");
+        int fim = scanner.nextInt();
+
+        int meio = (inicio + fim) / 2;
+
+        Thread t1 = new DuasThreads(inicio, meio);
+        Thread t2 = new DuasThreads(meio + 1, fim);
+
+        t1.start();
+        t2.start();
+
+        scanner.close();
+    }
+
     private int inicio, fim;
 
     public DuasThreads(int inicio, int fim) {
@@ -25,15 +47,5 @@ public class DuasThreads extends Thread {
             }
         }
         return true;
-    }
-
-    public static void main(String[] args) {
-        int meio = (2 + 10) / 2;
-
-        Thread thread1 = new DuasThreads(2, meio);
-        Thread thread2 = new DuasThreads(meio + 1, 10);
-
-        thread1.start();
-        thread2.start();
     }
 }

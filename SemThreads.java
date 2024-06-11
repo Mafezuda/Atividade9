@@ -1,8 +1,18 @@
+import java.util.Scanner;
+
 public class SemThreads {
     public static void main(String[] args) {
-        int inicio = 2;
-        int fim = 10;
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Digite o valor inicial do intervalo:");
+        int inicio = scanner.nextInt();
+
+        System.out.println("Digite o valor final do intervalo:");
+        int fim = scanner.nextInt();
+
         imprimePrimos(inicio, fim);
+        
+        scanner.close();
     }
 
     private static void imprimePrimos(int inicio, int fim) {

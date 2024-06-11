@@ -1,17 +1,17 @@
-public class MinhaThread implements Runnable {
+public class MinhaThread extends Thread {
+    @Override
     public void run() {
-        System.out.println("Thread '" + Thread.currentThread().getName() + "' executando");
+        System.out.println("Thread '" + this.getName() + "' executando");
     }
 
     public static void main(String[] args) {
-        Thread thread = new Thread(new MinhaThread());
+        MinhaThread thread = new MinhaThread();
         thread.setName("MinhaThread");
-        thread.setPriority(Thread.MAX_PRIORITY); // Atribuir prioridade máxima
+        thread.setPriority(Thread.MAX_PRIORITY); // Definir prioridade máxima
         thread.start();
-        try {
-            thread.join(); // Esperar pela thread terminar
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+        // Imprimir nome e prioridade da thread
+        System.out.println("Nome da thread: " + thread.getName());
+        System.out.println("Prioridade da thread: " + thread.getPriority());
     }
 }

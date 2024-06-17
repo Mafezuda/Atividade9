@@ -12,9 +12,9 @@ public class Main{
    
 
     public static final String encontrarArquivo = System.getProperty("user.dir");
-    public static final String ARQUIVO_ORIGEM = encontrarArquivo + "/many-flowers.jpg";
+    public static final String ARQUIVO_ORIGEM = encontrarArquivo + "/origem/many-flowers.jpg";
 
-    public static final String ARQUIVO_DESTINO = encontrarArquivo + "/many-flowers.jpg";
+    public static final String ARQUIVO_DESTINO = encontrarArquivo + "/final/many-flowers.jpg";
 
     public static void main(String[] args) throws IOException {
 
@@ -22,10 +22,11 @@ public class Main{
         BufferedImage ImagemResultado = new BufferedImage(ImagemOriginal.getWidth(), ImagemOriginal.getHeight(), BufferedImage.TYPE_INT_RGB);
 
         long startTime = System.currentTimeMillis();
-        //recolorirUmaThread(ImagemOriginal, ImagemResultado);
-        int numberOfThreads = 6;
-        recolorMultithreaded(ImagemOriginal, ImagemResultado, numberOfThreads);
-        //recolorFracionado(ImagemOriginal, ImagemResultado, numberOfThreads);
+        recolorirUmaThread(ImagemOriginal, ImagemResultado);
+        
+        int numberOfThreads = 10;
+        //recolorMultithreaded(ImagemOriginal, ImagemResultado, numberOfThreads);
+        
    
         long endTime = System.currentTimeMillis();
         
@@ -112,10 +113,10 @@ public class Main{
 	//se o pixel em quest�o for um tom de cinza, vamos aumentar o n�vel de vermelho em 10; o de verde diminuir 80, azul dimiuir 20
         if(ehNivelDeCinza(red, green, blue)) {
 	    //para n�o exceder o valor m�ximo (255) pegamos o min
-            newRed = Math.min(255, red + 100);
-            newGreen = Math.max(0, green - 20);
+            newRed = Math.min(0, red + 100);
+            newGreen = Math.max(255, green - 20);
             //para n�o passar o 0 pegamos o max
-            newBlue = Math.max(0, blue - 120);
+            newBlue = Math.max(255, blue - 120);
         } else {
             newRed = red;
             newGreen = green;
@@ -131,8 +132,10 @@ public class Main{
     }
     //metodo para verificar se o pixel � tom de cinza (estar� na parte branca da flor)
     //Checa se todos os componentes tem uma intensidade similar (< 30 - determinado empiricamente)
+    static int limiar = 100;
     public static boolean ehNivelDeCinza(int red, int green, int blue) {
-        return Math.abs(red - green) < 30 && Math.abs(red - blue) < 30 && Math.abs( green - blue) < 30;
+        return Math.abs(red - green) < 30 && Math.abs(red - blue) < 30 && Math.abs( green - blue) < 30
+        && red > limiar && green > limiar && blue > limiar;
     }
 
     public static int createRGBFromColors(int red, int green, int blue) {

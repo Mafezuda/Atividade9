@@ -1,0 +1,146 @@
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+
+public class Main {
+    public static final String encontrarArquivo = System.getProperty("user.dir");
+    public static final String ARQUIVO_ORIGEM = encontrarArquivo + "/many-flowers.jpg";
+
+    public static final String ARQUIVO_DESTINO = encontrarArquivo + "/many-flowers.jpg";
+
+    public static void main(String[] args) {
+        try {
+            // Verificar a existência do arquivo de entrada
+            File inputFile = new File(ARQUIVO_ORIGEM);
+            if (!inputFile.exists()) {
+                System.err.println("O arquivo de origem não existe: " + ARQUIVO_ORIGEM);
+                return;
+            }
+
+            BufferedImage ImagemOriginal = ImageIO.read(inputFile);
+            BufferedImage ImagemResultado = new BufferedImage(ImagemOriginal.getWidth(), ImagemOriginal.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+            long startTime = System.currentTimeMillis();
+            int numberOfThreads = 6;
+            recolorMultithreaded(ImagemOriginal, ImagemResultado, numberOfThreads);
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+
+            File outputFile = new File(ARQUIVO_DESTINO);
+            // Criar diretório de saída, se não existir
+            if (!outputFile.getParentFile().exists()) {
+                outputFile.getParentFile().mkdirs();
+            }
+            ImageIO.write(ImagemResultado, "jpg", outputFile);
+
+            System.out.println("Duração: " + duration + " ms");
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo de entrada ou escrever o arquivo de saída: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static void recolorMultithreaded(BufferedImage ImagemOriginal, BufferedImage ImagemResultado, int numberOfThreads) {
+        ArrayList<Thread> threads = new ArrayList<>();
+        int width = ImagemOriginal.getWidth();
+        int height = ImagemOriginal.getHeight() / numberOfThreads;
+
+        for (int i = 0; i < numberOfThreads; i++) {
+            final int threadMultiplier = i;
+
+            Thread thread = new Thread(() -> {
+                int xOrigin = 0;
+                int yOrigin = height * threadMultiplier;
+
+                recolorirImagem(ImagemOriginal, ImagemResultado, xOrigin, yOrigin, width, height);
+            });
+
+            threads.add(thread);
+        }
+
+        for (Thread thread : threads) {
+            thread.start();
+        }
+
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void recolorirImagem(BufferedImage ImagemOriginal, BufferedImage ImagemResultado, int leftCorner, int topCorner, int width, int height) {
+        for (int x = leftCorner; x < leftCorner + width && x < ImagemOriginal.getWidth(); x++) {
+            for (int y = topCorner; y < topCorner + height && y < ImagemOriginal.getHeight(); y++) {
+                recolorirPixel(ImagemOriginal, ImagemResultado, x, y);
+            }
+        }
+    }
+
+    public static void recolorirPixel(BufferedImage ImagemOriginal, BufferedImage ImagemResultado, int x, int y) {
+        int rgb = ImagemOriginal.getRGB(x, y);
+
+        int red = getRed(rgb);
+        int green = getGreen(rgb);
+        int blue = getBlue(rgb);
+
+        int newRed;
+        int newGreen;
+        int newBlue;
+
+        // Se o pixel é quase branco, ajusta as cores para a nova cor
+        if (ehNivelDeCinza(red, green, blue)) {
+            newRed = 255; // Nova cor desejada (ex: vermelho)
+            newGreen = 0;
+            newBlue = 0;
+        } else {
+            newRed = red;
+            newGreen = green;
+            newBlue = blue;
+        }
+
+        int newRGB = createRGBFromColors(newRed, newGreen, newBlue);
+        setRGB(ImagemResultado, x, y, newRGB);
+    }
+
+    public static void setRGB(BufferedImage image, int x, int y, int rgb) {
+        image.getRaster().setDataElements(x, y, image.getColorModel().getDataElements(rgb, null));
+    }
+
+    // Metodo para verificar se o pixel é tom de cinza claro (próximo ao branco)
+    public static boolean ehNivelDeCinza(int red, int green, int blue) {
+        int limiar = 200;
+        return Math.abs(red - green) < 30 && Math.abs(red - blue) < 30 && Math.abs(green - blue) < 30
+                && red > limiar && green > limiar && blue > limiar;
+    }
+
+    public static int createRGBFromColors(int red, int green, int blue) {
+        int rgb = 0;
+        // Operação de OR deslocando para esquerda em cada cor
+        rgb |= blue;
+        rgb |= green << 8;
+        rgb |= red << 16;
+
+        rgb |= 0xFF000000;
+
+        return rgb;
+    }
+
+    public static int getRed(int rgb) {
+        return (rgb & 0x00FF0000) >> 16;
+    }
+
+    public static int getGreen(int rgb) {
+        return (rgb & 0x0000FF00) >> 8;
+    }
+
+    public static int getBlue(int rgb) {
+        return rgb & 0x000000FF;
+    }
+}
